@@ -1,8 +1,10 @@
 package me.afua.thymeleafsecdemo.controllers;
 
 import me.afua.thymeleafsecdemo.UserService;
+import me.afua.thymeleafsecdemo.entities.Room;
 import me.afua.thymeleafsecdemo.entities.UserData;
 import me.afua.thymeleafsecdemo.repositories.RoleRepository;
+import me.afua.thymeleafsecdemo.repositories.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,11 +19,10 @@ public class MainController {
     @Autowired
     private UserService userService;
 
-//    @RequestMapping(value="/register", method= RequestMethod.GET)
-//    public String showRegistrationPage(Model model){
-//        model.addAttribute("userData", new UserData());
-//        return "registration";
-//    }
+    @Autowired
+    RoomRepository roomRepository;
+
+
 
     @RequestMapping("/")
     public String showMainPage(Principal p) {
@@ -34,15 +35,28 @@ public class MainController {
     {
         return "login";
     }
-    @RequestMapping("/pageone")
-    public String showPageOne(Model model)
-    {
-        model.addAttribute("title","First Page");
-        model.addAttribute("pagenumber","1");
-        return "pageone";
+
+    @RequestMapping("/update/{id}")
+    public String updateRoom (@PathVariable("id") long id, Model model){
+        model.addAttribute("room", roomRepository.findOne(id));
+        return "updateform";
     }
 
+    @PostMapping ("/process")
+    public String processForm (@Valid Room room, BindingResult result){
+        System.out.println(result);
+        if (result.hasErrors()){
+            return "roomform";
+        }
+        roomRepository.save(room);
+        return "dashboard";
+    }
 
+    @RequestMapping("/detail/{id}")
+    public String displayRoom (@PathVariable ("id") long id, Model model){
+        model.addAttribute("room", roomRepository.findOne(id));
+        return "roomlist";
+    }
     @GetMapping("/register")
     public String showRegistrationPage(Model model)
     {
@@ -51,34 +65,26 @@ public class MainController {
         return "registration";
     }
 
-    @PostMapping("/register")
-    public String processRegistrationPage(@Valid @ModelAttribute("user") UserData user,
-                                          BindingResult bindingresult, Model model)
-    {
 
-        if(bindingresult.hasErrors()){
-            return "registration";
-        }else{
-            userService.saveUser(user);
-            model.addAttribute("message", "User Account Successfully Created");
-        }
-        return "index";
+    @GetMapping("/addlisting")
+    public String roomForm (Model model){
+        model.addAttribute("room", new Room());
+        return "roomform";
     }
-    @RequestMapping("/pagetwo")
-    public String showPageTwo(Model model)
+    @RequestMapping("/roomlisting/{id}")
+    public String showlisting (@PathVariable ("id") long id, Model model)
     {
-        model.addAttribute("title","Second Page");
+        model.addAttribute("room", roomRepository.findOne(id));
         model.addAttribute("pagenumber","2");
-        return "pagetwo";
+        return "roomlist";
     }
 
-    @RequestMapping("/pagethree")
+    @RequestMapping("/dashboard")
     public String showPageThree(Model model)
     {
-        model.addAttribute("title","Third Page");
+        model.addAttribute("title","dashboard");
         model.addAttribute("pagenumber","3");
-        return "pagethree";
+        return "dashboard";
     }
-
 
 }
